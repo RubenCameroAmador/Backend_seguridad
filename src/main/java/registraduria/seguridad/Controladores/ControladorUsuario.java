@@ -4,6 +4,8 @@ import registraduria.seguridad.Repositorios.RepositorioUsuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,9 +30,10 @@ public class ControladorUsuario {
 
     @GetMapping("{id}")
     public Usuario show(@PathVariable String id){
-        Usuario usuarioActual=this.miRepositorioUsuario
-                .findById(id)
-                .orElse(null);
+        Usuario usuarioActual=this.miRepositorioUsuario.findById(id).orElse(null);
+        if (usuarioActual==null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"El usuario no fue encontrado");
+        }
         return usuarioActual;
     }
     @PutMapping("{id}")
@@ -57,6 +60,8 @@ public class ControladorUsuario {
                 .orElse(null);
         if (usuarioActual!=null){
             this.miRepositorioUsuario.delete(usuarioActual);
+        }else{
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"El usuario no fue encontrado");
         }
     }
     public String convertirSHA256(String password) {

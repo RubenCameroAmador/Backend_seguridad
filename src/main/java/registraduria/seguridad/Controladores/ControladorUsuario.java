@@ -12,6 +12,9 @@ import java.util.List;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @CrossOrigin
 @RestController
 @RequestMapping("/usuarios")
@@ -29,8 +32,38 @@ public class ControladorUsuario {
     @PostMapping
     public Usuario create(@RequestBody Usuario infoUsuario){
         infoUsuario.setContrasena(convertirSHA256(infoUsuario.getContrasena()));
+        if(this.nombreRepetido(infoUsuario)==true){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,"El nombre de usuario ya existe");
+        }else if(!this.cedulaValida(infoUsuario)){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,"El correo no es correcto");
+        }
         return this.miRepositorioUsuario.save(infoUsuario);
     }
+
+    //Método para detectar un nombre repetido
+    private boolean nombreRepetido(Usuario infousuario){
+        System.out.println("Entro al método");
+        for(Usuario user : this.miRepositorioUsuario.findAll()){
+            System.out.println(user.getNombre()+" "+infousuario.getNombre());
+            if(user.getNombre().equals(infousuario.getNombre())){
+                return true;
+            }
+        }
+        return false;
+    }
+    //Método para detectar si el correo es valido usando una expresión regular
+    private boolean cedulaValida(Usuario infousuario){
+        Pattern pattern = Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+                        + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+        String email = infousuario.getCorreo();
+        Matcher mather = pattern.matcher(email);
+        if(mather.find() == true){
+            return true;  //es valido
+        }else{
+            return false;
+        }
+    }
+
 
     @GetMapping("{id}")
     public Usuario show(@PathVariable String id){
@@ -64,6 +97,7 @@ public class ControladorUsuario {
                 .orElse(null);
         if (usuarioActual!=null){
             this.miRepositorioUsuario.delete(usuarioActual);
+            throw new ResponseStatusException(HttpStatus.OK,"Usuario eliminado correctamente");
         }else{
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"El usuario no fue encontrado");
         }

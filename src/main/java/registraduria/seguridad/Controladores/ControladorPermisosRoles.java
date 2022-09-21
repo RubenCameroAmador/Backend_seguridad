@@ -1,4 +1,5 @@
 package registraduria.seguridad.Controladores;
+import org.springframework.web.server.ResponseStatusException;
 import registraduria.seguridad.Modelos.PermisosRoles;
 import registraduria.seguridad.Modelos.Rol;
 import registraduria.seguridad.Modelos.Permiso;
@@ -64,9 +65,7 @@ public class ControladorPermisosRoles {
      */
     @PutMapping("{id}/rol/{id_rol}/permiso/{id_permiso}")
     public PermisosRoles update(@PathVariable String id,@PathVariable String id_rol,@PathVariable String id_permiso){
-        PermisosRoles permisosRolesActual=this.miRepositorioPermisoRoles
-                .findById(id)
-                .orElse(null);
+        PermisosRoles permisosRolesActual=this.miRepositorioPermisoRoles.findById(id).orElse(null);
         Rol elRol=this.miRepositorioRol.findById(id_rol).orElse(null);
         Permiso elPermiso=this.miRepositorioPermiso.findById(id_permiso).get();
         if(permisosRolesActual!=null && elPermiso!=null && elRol!=null){
@@ -84,6 +83,7 @@ public class ControladorPermisosRoles {
         PermisosRoles permisosRolesActual=this.miRepositorioPermisoRoles.findById(id).orElse(null);
         if (permisosRolesActual!=null){
             this.miRepositorioPermisoRoles.delete(permisosRolesActual);
+            throw new ResponseStatusException(HttpStatus.OK,"Permiso-Rol eliminado correctamente");
         }
     }
 }
